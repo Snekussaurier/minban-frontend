@@ -1,8 +1,10 @@
 use std::str;
 use dioxus_logger::tracing::info;
-use serde::{ Deserialize, Serialize };
 
-use crate::LoginState;
+use crate::mods::LoginRequest;
+use crate::utils::LoginState;
+use crate::mods::CardModel;
+use crate::mods::StateModel;
 
 pub static BASE_API_URL: &str = "http://localhost:9916/";
 pub static LOGIN_API: &str = "api/v1/login";
@@ -28,7 +30,7 @@ pub async fn login(username: String, password: String) -> Result<(), reqwest::Er
     Ok(())
 }
 
-pub async fn checkAuth() -> Result<LoginState, reqwest::Error> {
+pub async fn check_auth() -> Result<LoginState, reqwest::Error> {
     let client = reqwest::Client::builder()
         .build()?;
     
@@ -47,7 +49,7 @@ pub async fn checkAuth() -> Result<LoginState, reqwest::Error> {
     Ok(LoginState::LoggedIn)
 }
 
-pub async fn get_cards() -> Result<Vec<Card>, reqwest::Error> {
+pub async fn get_cards() -> Result<Vec<CardModel>, reqwest::Error> {
     let client = reqwest::Client::builder()
         .build()?;
     
@@ -61,14 +63,14 @@ pub async fn get_cards() -> Result<Vec<Card>, reqwest::Error> {
         .await?
         .error_for_status()?;
 
-    let cards: Vec<Card> = response.json().await?;
+    let cards: Vec<CardModel> = response.json().await?;
     
     info!("cards: {:?}", cards);
 
     Ok(cards)
 }
 
-pub async fn patch_card(card: Card) -> Result<(), reqwest::Error> {
+pub async fn patch_card(card: CardModel) -> Result<(), reqwest::Error> {
     let client = reqwest::Client::builder()
         .build()?;
     
@@ -86,7 +88,7 @@ pub async fn patch_card(card: Card) -> Result<(), reqwest::Error> {
     Ok(())
 }
 
-pub async fn get_states() -> Result<Vec<State>, reqwest::Error> {
+pub async fn get_states() -> Result<Vec<StateModel>, reqwest::Error> {
     let client = reqwest::Client::builder()
         .build()?;
     
@@ -100,41 +102,9 @@ pub async fn get_states() -> Result<Vec<State>, reqwest::Error> {
         .await?
         .error_for_status()?;
 
-    let states: Vec<State> = response.json().await?;
+    let states: Vec<StateModel> = response.json().await?;
     
     info!("states: {:?}", states);
 
     Ok(states)
-}
-
-#[derive(Serialize)]
-pub struct LoginRequest {
-    pub username: String,
-    pub password: String,
-}
-
-
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
-pub struct Tag {
-    id: u32,
-    pub name: String,
-    pub color: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Default)]
-pub struct Card {
-    pub id: String,
-    pub title: String,
-    pub description: String,
-    pub position: u32,
-    pub state_id: u32,
-    pub tags: Vec<Tag>,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
-pub struct State {
-    pub id: u32,
-    pub name: String,
-    pub color: String,
-    pub position: u32,
 }

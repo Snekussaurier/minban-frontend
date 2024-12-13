@@ -1,4 +1,6 @@
-pub struct LoginResponse {
-    pub token: String,
-    pub user_id: String,
+use serde::Deserialize;
+
+#[derive(Debug, Deserialize, Clone, PartialEq)]
+pub struct IdResponse {
+    pub id: String,
 }

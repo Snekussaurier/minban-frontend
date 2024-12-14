@@ -6,6 +6,7 @@ use dioxus_logger::tracing::{info, Level};
 use components::*;
 use mods::*;
 use utils::LoginState;
+use components::icons::Plus;
 
 mod api;
 mod components;
@@ -64,8 +65,6 @@ fn Dashboard() -> Element {
     let _selected_card_context = use_context_provider(|| Signal::new(CardModel::default()));
     let _is_selecting = use_context_provider(|| Signal::new(false));
 
-    const PLUS_SVG: Asset = asset!("/assets/plus.svg");
-
     rsx! {
         div {
             class: "flex flex-col h-screen w-screen py-6 bg-white",
@@ -90,11 +89,11 @@ fn Dashboard() -> Element {
                                 }
                             }
                             button {
-                                class: "rounded-md bg-slate-100 flex items-center justify-center h-12 w-12",
+                                class: "rounded-md bg-slate-100 text-slate-400 hover:text-[#413a46] duration-200 flex items-center justify-center h-12 min-w-12",
                                 onclick: move |_| {
                                     info!("Add card");
                                 },
-                                img { src: PLUS_SVG, class: "w-4 h-4" }
+                                Plus {}
                             }
                         }
                     }

@@ -15,3 +15,5 @@ pub use tag::Tag;
 
 mod card;
 pub use card::Card; 
+
+pub mod icons;

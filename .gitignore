@@ -7,3 +7,6 @@ dist
 
 # Node.js
 node_modules
+
+# Tailwind CSS
+assets/tailwind.css

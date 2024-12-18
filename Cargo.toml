@@ -11,7 +11,6 @@ edition = "2021"
 dioxus = { version = "0.6", features = ["web", "router"] }
 
 # Debug
-dioxus-logger = "0.5.1"
 reqwest = { version = "0.12.9", features = ["json"] }
 serde = "1.0.215"
 wasm-cookies = "0.2.1"

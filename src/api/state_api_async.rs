@@ -1,7 +1,7 @@
 use crate::mods::StateModel;
 use crate::mods::IdResponse;
 use crate::api::routes::{ BASE_API_URL, API_VERSION };
-use dioxus_logger::tracing::debug;
+use dioxus::logger::tracing::debug;
 
 pub async fn get_states() -> Result<Vec<StateModel>, reqwest::Error> {
     let client = reqwest::Client::builder()

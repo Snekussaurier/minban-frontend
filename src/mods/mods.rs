@@ -2,6 +2,7 @@ use serde::{ Deserialize, Serialize };
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Default)]
 pub struct CardModel {
+    #[serde(skip_serializing)]
     pub id: String,
     pub title: String,
     pub description: String,
@@ -20,7 +21,7 @@ pub struct StateModel {
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct TagModel {
-    id: u32,
+    pub id: u32,
     pub name: String,
     pub color: String,
 }

@@ -1,7 +1,7 @@
 use crate::mods::CardModel;
 use crate::api::routes::{ BASE_API_URL, API_VERSION };
 use crate::IdResponse;
-use dioxus_logger::tracing::debug;
+use dioxus::logger::tracing::debug;
 
 pub async fn get_cards() -> Result<Vec<CardModel>, reqwest::Error> {
     let client = reqwest::Client::builder()

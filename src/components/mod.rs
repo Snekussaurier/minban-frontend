@@ -16,4 +16,9 @@ pub use tag::Tag;
 mod card;
 pub use card::Card; 
 
+pub mod editable_tag;
+
 pub mod icons;
+
+pub mod loading;
+pub use loading::Loading;

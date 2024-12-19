@@ -61,7 +61,6 @@ fn App() -> Element {
 fn Dashboard() -> Element {
     let mut cards_signal = use_context_provider(|| Signal::new(vec![] as Vec<CardModel>));
     let cards = use_resource(move || async move {
-            gloo_timers::future::TimeoutFuture::new(5000).await;
             let cards_collected = get_cards().await;
             match cards_collected {
                 Ok(cards) => Ok(cards_signal.set(cards)),
@@ -99,13 +98,26 @@ fn Dashboard() -> Element {
                         },
                         on_update: move |card: CardModel| {
                             spawn(async move {
-                                let updated_card = patch_card(card.clone()).await;
+                                let cards = cards_signal.clone();
+                                let index = cards.iter().position(|x| x.id == card.id).unwrap();
+                                cards_signal.write()[index] = card.clone();
+
+                                let updated_card = patch_card(card).await;
+                                
                                 match updated_card {
-                                    Ok(_) => {
-                                        let cards = cards_signal.clone();
-                                        let index = cards.iter().position(|x| x.id == card.id).unwrap();
-                                        cards_signal.write()[index] = card;
+                                    Ok(_) => {}
+                                    Err(err) => {
+                                        error!("Error updating card {:?}", err);
                                     }
+                                }
+                            });
+                        },
+                        on_delete: move |card: CardModel| {
+                            spawn(async move {
+                                cards_signal.write().retain(|x| x.id != card.id);
+                                let deleted_card = delete_card(card.clone()).await;
+                                match deleted_card {
+                                    Ok(_) => {}
                                     Err(err) => {
                                         error!("Error updating card {:?}", err);
                                     }

@@ -7,7 +7,9 @@ use crate::components::editable_tag::EditableTag;
 use crate::components::icons::{Plus, TrashCan};
 
 #[component]
-pub fn CardDetails(on_create: EventHandler<CardModel>, on_update: EventHandler<CardModel>) -> Element {
+pub fn CardDetails(on_create: EventHandler<CardModel>, 
+                on_update: EventHandler<CardModel>, 
+                on_delete: EventHandler<CardModel>) -> Element {
     let mut card = use_context::<Signal<CardModel>>();
     let mut is_selecting = use_context::<Signal<IsSelectingState>>();
     let is_new_card = use_context::<Signal<IsNewCardState>>();
@@ -34,6 +36,10 @@ pub fn CardDetails(on_create: EventHandler<CardModel>, on_update: EventHandler<C
                         if !is_new_card().0 {
                             button {
                                 class: "h-fit text-slate-400 hover:text-red-400 duration-200 transition-colors",
+                                onclick: move |_| {
+                                    on_delete.call(card.read().clone());
+                                    is_selecting.set(IsSelectingState(false));
+                                },
                                 TrashCan{}
                             }
                         }

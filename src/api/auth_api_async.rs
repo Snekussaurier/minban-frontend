@@ -23,6 +23,22 @@ pub async fn login(username: String, password: String) -> Result<(), reqwest::Er
     Ok(())
 }
 
+pub async fn logout() -> Result<(), reqwest::Error> {
+    let client = reqwest::Client::builder()
+        .build()?;
+    
+    let url = format!("{}{}", BASE_API_URL, "api/v1/logout");
+
+    let _response = client
+        .post(url)
+        .fetch_credentials_include()
+        .send()
+        .await?
+        .error_for_status()?;
+    
+    Ok(())
+}
+
 pub async fn check_auth() -> Result<LoginState, reqwest::Error> {
     let client = reqwest::Client::builder()
         .build()?;

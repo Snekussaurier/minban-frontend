@@ -1,5 +1,6 @@
 mod auth_api_async;
 pub use auth_api_async::login;
+pub use auth_api_async::logout;
 pub use auth_api_async::check_auth;
 
 mod card_api_async;

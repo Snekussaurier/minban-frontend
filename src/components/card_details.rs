@@ -58,7 +58,11 @@ pub fn CardDetails(on_create: EventHandler<CardModel>,
                         }
                         button {
                             onclick: move |_| { info!("Add tag"); },
-                            class: "rounded-full py-1 flex-shrink overflow-hidden relative bg-slate-200 aspect-square",
+                            class: "rounded-full  px-3 py-1 flex justify-center items-center text-slate-400 hover:text-[#413a46] duration-200 overflow-hidden relative bg-slate-200",
+                            p {
+                                class: "text-sm mr-1",
+                                "Add tag"
+                            }
                             Plus {}
                         }
                     }
@@ -75,27 +79,30 @@ pub fn CardDetails(on_create: EventHandler<CardModel>,
                         value: "{card.read().description}",
                         oninput: move |evt| card.write().description = evt.value()
                     }
-                    button {
-                        class: "rounded-md p-2 bg-purple-100",
-                        onclick: move |_| {
+                    div {
+                        class: "flex flex-row gap-4 justify-end",
+                        button {
+                            class: "rounded-md p-2 bg-[#5B5B71] hover:bg-purple-900 text-white flex-grow duration-200",
+                            onclick: move |_| {
+                                if is_new_card().0 {
+                                    on_create.call(card.read().clone());
+                                }
+                                else {
+                                    on_update.call(card.read().clone());
+                                }
+                                is_selecting.set(IsSelectingState(false));
+                            },
                             if is_new_card().0 {
-                                on_create.call(card.read().clone());
-                            }
-                            else {
-                                on_update.call(card.read().clone());
-                            }
-                            is_selecting.set(IsSelectingState(false));
-                        },
-                        if is_new_card().0 {
-                            "Create"
-                        } else {
-                            "Save"
+                                "Create"
+                            } else {
+                                "Save"
+                            } 
                         }
-                    }
-                    button {
-                        class: "rounded-md p-2 bg-slate-100",
-                        onclick: move |_| is_selecting.set(IsSelectingState(false)),
-                        "Close"
+                        button {
+                            class: "rounded-md p-2 bg-slate-100 flex-grow",
+                            onclick: move |_| is_selecting.set(IsSelectingState(false)),
+                            "Close"
+                        }
                     }
                 }
             }

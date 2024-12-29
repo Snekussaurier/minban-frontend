@@ -134,6 +134,21 @@ fn Dashboard() -> Element {
                                     .filter(|card| card.state_id == state.id)
                                     .cloned()
                                     .collect::<Vec<_>>(),
+                                on_drop:
+                                move |card: CardModel| {
+                                    let cards = cards_signal.clone();
+                                    let index = cards.iter().position(|x| x.id == card.id).unwrap();
+                                    cards_signal.write()[index] = card.clone();
+                                    spawn(async move {
+                                        let updated_card = patch_card(card).await;
+                                        match updated_card {
+                                            Ok(_) => {}
+                                            Err(err) => {
+                                                error!("Error updating card {:?}", err);
+                                            }
+                                        }
+                                    });
+                                }
                             }
                         }
                         button {

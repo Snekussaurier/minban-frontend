@@ -1,7 +1,6 @@
 use dioxus::prelude::*;
 use crate::components::icons::{Sun, Settings, Logout};
 use crate::api::logout;
-use crate::main;
 
 #[component]
 pub fn Header() -> Element {
@@ -11,7 +10,7 @@ pub fn Header() -> Element {
             div {
                 class: "flex flex-col",
                 h1 { 
-                    class: "text-3xl text-[#413a46]",
+                    class: "text-3xl text-minban_dark",
                     "Minban" 
                 }
                 p { 
@@ -22,11 +21,11 @@ pub fn Header() -> Element {
             div { 
                 class: "flex flex-row gap-4",
                 button {  
-                    class: "text-slate-400 hover:text-[#413a46] duration-200",
+                    class: "text-slate-400 hover:text-minban_dark duration-200",
                     Sun{}
                 }
                 button {  
-                    class: "text-slate-400 hover:text-[#413a46] duration-200",
+                    class: "text-slate-400 hover:text-minban_dark duration-200",
                     Settings{}
                 }
                 button {  

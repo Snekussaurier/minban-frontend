@@ -82,7 +82,7 @@ pub fn CardDetails(on_create: EventHandler<CardModel>,
                     div {
                         class: "flex flex-row gap-4 justify-end",
                         button {
-                            class: "rounded-md p-2 bg-[#5B5B71] hover:bg-purple-900 text-white flex-grow duration-200",
+                            class: "rounded-md p-2 bg-minban_dark text-white flex-grow duration-200",
                             onclick: move |_| {
                                 if is_new_card().0 {
                                     on_create.call(card.read().clone());

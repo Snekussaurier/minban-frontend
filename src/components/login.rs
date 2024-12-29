@@ -12,7 +12,7 @@ pub fn Login(on_login: EventHandler<(String, String)>) -> Element {
                 on_login.call((username.read().clone(), password.read().clone()));
             },
             h1 { 
-                class: "text-3xl text-[#413a46] text-center",
+                class: "text-3xl text-minban_dark text-center",
                 "Minban" 
             }
             input {
@@ -29,9 +29,10 @@ pub fn Login(on_login: EventHandler<(String, String)>) -> Element {
                 value: "{password}",
                 oninput: move |evt| password.set(evt.value())
             },
-            button {
-                class: "rounded-md p-2 bg-purple-100",
-                "Login" 
+            input {
+                class: "rounded-md p-2 cursor-pointer bg-minban_dark text-white",
+                r#type: "submit",
+                value: "Login"
             }
         }
     }

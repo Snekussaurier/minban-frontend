@@ -13,11 +13,20 @@ pub fn Card(card: CardModel) -> Element {
     rsx! {
         div {
             draggable: "true",
-            onclick: move |_| {
-                // Open card details window
-                selected_card.set(card.clone());
-                is_new_card.set(IsNewCardState(false));
-                is_selecting.set(IsSelectingState(true));
+            onclick: {
+                let card = card.clone();
+                move |_| {
+                    // Open card details window
+                    selected_card.set(card.clone());
+                    is_new_card.set(IsNewCardState(false));
+                    is_selecting.set(IsSelectingState(true));
+                }
+            },
+            ondrag: {
+                let card = card.clone();
+                move |_| {
+                    selected_card.set(card.clone());
+                }
             },
             class: "min-h-24 w-full bg-white rounded-md p-4 shrink-0 flex flex-col gap-2 cursor-pointer relative",
             h1 { "{card.title}" }

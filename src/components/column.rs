@@ -6,14 +6,18 @@ use crate::components::icons::{MoreVertical, Plus};
 use crate::utils::{IsSelectingState, IsNewCardState};
 
 #[component]
-pub fn Column(state: StateModel, cards: Vec<CardModel>) -> Element {
+pub fn Column(state: StateModel, cards: Vec<CardModel>, on_drop: EventHandler<CardModel>) -> Element {
     let mut selected_card = use_context::<Signal<CardModel>>();
     let mut is_selecting = use_context::<Signal<IsSelectingState>>();
     let mut is_new_card = use_context::<Signal<IsNewCardState>>();
 
     rsx! {
         div {
-            draggable: "true",
+            ondrop: move |_| {
+                selected_card.write().state_id = state.id;
+                on_drop.call(selected_card().clone())
+            },
+            ondragover: move |e| e.prevent_default(),
             style: "background-color: #{state.color};",
             class: "h-full w-full min-w-72 max-w-96 rounded-md p-4 flex flex-col",
             div {

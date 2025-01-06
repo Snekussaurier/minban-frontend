@@ -1,12 +1,13 @@
 #![allow(non_snake_case)]
 
 use api::*;
+use reqwest::Error;
+use std::collections::{BTreeSet, HashMap};
 use std::result::Result::Ok;
 use dioxus::prelude::*;
 use dioxus::logger::tracing::{error, info};
 use components::*;
 use mods::*;
-use reqwest::Error;
 use utils::{IsSelectingState, IsNewCardState, LoginState};
 use components::icons::Plus;
 
@@ -59,11 +60,11 @@ fn App() -> Element {
 
 #[component]
 fn Dashboard() -> Element {
-    let mut cards_signal = use_context_provider(|| Signal::new(vec![] as Vec<CardModel>));
-    let cards = use_resource(move || async move {
-            let cards_collected = get_cards().await;
-            match cards_collected {
-                Ok(cards) => Ok(cards_signal.set(cards)),
+    let mut board_signal = use_context_provider(|| Signal::new(HashMap::new()));
+    let board = use_resource(move || async move {
+            let board_collected = get_cards().await;
+            match board_collected {
+                Ok(board) => Ok(board_signal.set(board)),
                 Err(err) => Err(err),
             }
         }
@@ -74,21 +75,20 @@ fn Dashboard() -> Element {
     let _is_selecting = use_context_provider(|| Signal::new(IsSelectingState(false)));
     let _is_new_card = use_context_provider(|| Signal::new(IsNewCardState(false)));
 
-    match( &*states.read_unchecked(),&*cards.read_unchecked() ) {
+    match( &*states.read_unchecked(),&*board.read_unchecked() ) {
         (Some(Ok(states_list)), Some(Ok(_))) => {
             rsx! {
                 div{
                     class: "flex flex-col h-full w-full py-6 bg-white",
                     Header {  }
                     CardDetails {
-                        on_create: move |card: CardModel| {
+                        on_create: move |mut card: CardModel| {
                             spawn(async move {
-                                let created_card_id: Result<String, Error> = create_card(card.clone()).await;
+                                let created_card_id: Result<String, Error> = create_card(&card).await;
                                 match created_card_id {
                                     Ok(id_str) => {
-                                        let mut card = card.clone();
                                         card.id = id_str;
-                                        cards_signal.write().push(card);
+                                        board_signal.write().entry(card.state_id).or_insert_with(BTreeSet::new).insert(card);
                                     }
                                     Err(err) => {
                                         error!("Error creating card: {:?}", err);
@@ -97,12 +97,12 @@ fn Dashboard() -> Element {
                             });
                         },
                         on_update: move |card: CardModel| {
+                            let mut board = board_signal.write();
+                            let column = board.entry(card.state_id).or_insert_with(BTreeSet::new);
+                        
+                            column.replace(card.clone());
                             spawn(async move {
-                                let cards = cards_signal.clone();
-                                let index = cards.iter().position(|x| x.id == card.id).unwrap();
-                                cards_signal.write()[index] = card.clone();
-
-                                let updated_card = patch_card(card).await;
+                                let updated_card = patch_card(&card).await;
                                 
                                 match updated_card {
                                     Ok(_) => {}
@@ -113,9 +113,12 @@ fn Dashboard() -> Element {
                             });
                         },
                         on_delete: move |card: CardModel| {
+                            let mut board = board_signal.write();
+                            let cards = board.entry(card.state_id).or_insert_with(BTreeSet::new);
+                            cards.remove(&card);
+
                             spawn(async move {
-                                cards_signal.write().retain(|x| x.id != card.id);
-                                let deleted_card = delete_card(card.clone()).await;
+                                let deleted_card = delete_card(&card.id).await;
                                 match deleted_card {
                                     Ok(_) => {}
                                     Err(err) => {
@@ -130,25 +133,14 @@ fn Dashboard() -> Element {
                         for state in states_list {
                             Column { 
                                 state: state.clone(),
-                                cards: cards_signal().iter()
-                                    .filter(|card| card.state_id == state.id)
-                                    .cloned()
-                                    .collect::<Vec<_>>(),
-                                on_drop:
-                                move |card: CardModel| {
-                                    let cards = cards_signal.clone();
-                                    let index = cards.iter().position(|x| x.id == card.id).unwrap();
-                                    cards_signal.write()[index] = card.clone();
-                                    spawn(async move {
-                                        let updated_card = patch_card(card).await;
-                                        match updated_card {
-                                            Ok(_) => {}
-                                            Err(err) => {
-                                                error!("Error updating card {:?}", err);
-                                            }
-                                        }
-                                    });
-                                }
+                                cards: {
+                                    let board = board_signal.read();
+                                    let cards_option = board.get(&state.id);
+                                    match cards_option {
+                                        Some(cards) => cards.clone(),
+                                        None => BTreeSet::new()
+                                    }
+                                },
                             }
                         }
                         button {

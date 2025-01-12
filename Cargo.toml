@@ -9,6 +9,7 @@ edition = "2021"
 [dependencies]
 
 dioxus = { version = "0.6", features = ["web", "router"] }
+futures = "0.3.31"
 
 # Debug
 reqwest = { version = "0.12.9", features = ["json"] }

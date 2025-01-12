@@ -1,9 +1,8 @@
-use crate::mods::StateModel;
+use crate::mods::TagModel;
 use crate::mods::IdResponse;
 use crate::api::routes::{ BASE_API_URL, API_VERSION };
-use dioxus::logger::tracing::debug;
 
-pub async fn get_tags() -> Result<Vec<StateModel>, reqwest::Error> {
+pub async fn get_tags() -> Result<Vec<TagModel>, reqwest::Error> {
     let client = reqwest::Client::builder()
         .build()?;
     
@@ -17,14 +16,12 @@ pub async fn get_tags() -> Result<Vec<StateModel>, reqwest::Error> {
         .await?
         .error_for_status()?;
 
-    let tags: Vec<StateModel> = response.json().await?;
-    
-    debug!("tags: {:?}", tags);
+    let tags: Vec<TagModel> = response.json().await?;
 
     Ok(tags)
 }
 
-pub async fn create_tag(tag: StateModel) -> Result<String, reqwest::Error> {
+pub async fn create_tag(tag: TagModel) -> Result<String, reqwest::Error> {
     let client = reqwest::Client::builder()
         .build()?;
     
@@ -44,7 +41,7 @@ pub async fn create_tag(tag: StateModel) -> Result<String, reqwest::Error> {
     Ok(id_response.id)
 }
 
-pub async fn patch_tag(tag: StateModel) -> Result<(), reqwest::Error> {
+pub async fn patch_tag(tag: TagModel) -> Result<(), reqwest::Error> {
     let client = reqwest::Client::builder()
         .build()?;
     
@@ -62,7 +59,7 @@ pub async fn patch_tag(tag: StateModel) -> Result<(), reqwest::Error> {
     Ok(())
 }
 
-pub async fn delete_tag(tag: StateModel) -> Result<(), reqwest::Error> {
+pub async fn delete_tag(tag: TagModel) -> Result<(), reqwest::Error> {
     let client = reqwest::Client::builder()
         .build()?;
     

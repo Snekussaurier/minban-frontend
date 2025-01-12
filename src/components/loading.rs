@@ -6,11 +6,11 @@ pub fn Loading() -> Element {
         div {
             class: "flex flex-col h-full w-full p-6 bg-white animate-pulse overflow-hidden",
             div {
-                class: "w-full flex flex-col mt-5",
-                div { 
+                class: "w-full flex flex-col",
+                div {
                     class: "h-9 w-56 bg-slate-100 rounded-full",
                 }
-                div { 
+                div {
                     class: "h-5 mt-3 flex flex-row gap-2",
                     div {
                         class: "h-full w-4 bg-slate-100 rounded-full",

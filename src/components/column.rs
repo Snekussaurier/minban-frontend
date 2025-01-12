@@ -1,11 +1,11 @@
-use std::collections::{BTreeSet, HashMap};
-use dioxus::prelude::*;
-use dioxus::logger::tracing::{debug, error};
-use crate::mods::{StateModel, CardModel};
-use crate::components::Card;
 use crate::components::icons::{MoreVertical, Plus};
+use crate::components::Card;
+use crate::mods::{CardModel, StateModel};
 use crate::patch_card;
-use crate::utils::{IsSelectingState, IsNewCardState};
+use crate::utils::{IsNewCardState, IsSelectingState};
+use dioxus::logger::tracing::{debug, error};
+use dioxus::prelude::*;
+use std::collections::{BTreeSet, HashMap};
 
 #[component]
 pub fn Column(state: StateModel, cards: BTreeSet<CardModel>) -> Element {
@@ -44,14 +44,14 @@ pub fn Column(state: StateModel, cards: BTreeSet<CardModel>) -> Element {
                 };
 
                 // Add the card to the board
-                let column = board.entry(state.id).or_insert_with(BTreeSet::new);
+                let column = board.entry(state.id).or_default();
                 column.insert(card.clone());
 
                 // Sync updated card with the database
                 spawn(
                     async move {
                         let updated_card = patch_card(&card).await;
-                            
+
                         match updated_card {
                             Ok(_) => {}
                             Err(err) => {
@@ -72,7 +72,7 @@ pub fn Column(state: StateModel, cards: BTreeSet<CardModel>) -> Element {
                 // Update positions of the remaining column in the original colum
                 let mut updated_cards: Vec<CardModel> = column
                 .iter()
-                .map(|card| card.clone())
+                .cloned()
                 .collect();
 
                 // Reorder positions for remaining column
@@ -90,7 +90,7 @@ pub fn Column(state: StateModel, cards: BTreeSet<CardModel>) -> Element {
                         // patch all column that are updated
                         for card in updated_cards {
                             let updated_card = patch_card(&card).await;
-                            
+
                             match updated_card {
                                 Ok(_) => {}
                                 Err(err) => {
@@ -117,7 +117,7 @@ pub fn Column(state: StateModel, cards: BTreeSet<CardModel>) -> Element {
                                 id: "".to_string(),
                                 title: "".to_string(),
                                 description: "".to_string(),
-                                state_id: state.id.clone(),
+                                state_id: state.id,
                                 // Get the last card in the column and set the position to the next one
                                 position: cards.len() as u32 + 1,
                                 tags: vec![],

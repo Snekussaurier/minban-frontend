@@ -1,6 +1,6 @@
-use dioxus::prelude::*;
-use crate::components::icons::{Sun, Settings, Logout};
 use crate::api::logout;
+use crate::components::icons::{Logout, Settings, Sun};
+use dioxus::prelude::*;
 
 #[component]
 pub fn Header() -> Element {
@@ -9,26 +9,22 @@ pub fn Header() -> Element {
             class: "w-full flex flex-row justify-between px-6 items-start",
             div {
                 class: "flex flex-col",
-                h1 { 
+                h1 {
                     class: "text-3xl text-minban_dark",
-                    "Minban" 
+                    "Minban"
                 }
-                p { 
+                p {
                     class: "font-light text-[#7a6f83] text-sm mt-3",
-                    "A little description of the app." 
+                    "A little description of the app."
                 }
             }
-            div { 
+            div {
                 class: "flex flex-row gap-4",
-                button {  
-                    class: "text-slate-400 hover:text-minban_dark duration-200",
-                    Sun{}
-                }
-                button {  
+                button {
                     class: "text-slate-400 hover:text-minban_dark duration-200",
                     Settings{}
                 }
-                button {  
+                button {
                     class: "text-slate-400 hover:text-red-400 duration-200",
                     onclick: move |_| {
                         spawn(async move {

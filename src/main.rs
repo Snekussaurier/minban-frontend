@@ -28,28 +28,25 @@ fn main() {
 }
 
 fn App() -> Element {
-    let mut login_state = use_resource(check_auth);
+    let login_state = use_resource(check_auth);
+    const VERSION: &str = env!("CARGO_PKG_VERSION");
 
     rsx!(
+        document::Stylesheet {
+            // Urls are relative to your Cargo.toml file
+            href: asset!("/assets/tailwind.css")
+        }
         div {
-            class: "flex items-center justify-center h-screen w-screen bg-gray-100",
+            class: "flex items-center justify-center h-screen w-screen bg-gray-100 relative",
             match &*login_state.read_unchecked() {
                 Some(Ok(LoginState::NotLoggedIn)) => rsx!( Login {
-                    on_login: move |(username, password)| {
-                        spawn(async move {
-                            match login(username, password).await {
-                                Ok(_) => {
-                                    info!("Login successful");
-                                    login_state.restart();
-                                },
-                                Err(_) => {
-                                    // TODO: Display the user, that the login has failed
-                                    info!("Login failed");
-                                }
-                            }
-                        });
-                    }
-                }),
+                    login_state
+                }
+                p {
+                    class: "absolute right-1 bottom-1 text-sm text-slate-400",
+                    "Minban {VERSION}"
+                }
+                ),
                 Some(Ok(LoginState::LoggedIn)) => rsx!( Dashboard {} ),
                 Some(Err(_)) =>  rsx!{ Loading {} },
                 None => rsx!{ Loading {} },
@@ -83,7 +80,7 @@ fn Dashboard() -> Element {
 
     match &*board.read_unchecked() {
         Some(Ok(_)) => {
-            rsx! {
+            rsx! (
                 div{
                     class: "flex flex-col h-full w-full py-6 bg-white",
                     Header {  }
@@ -134,31 +131,12 @@ fn Dashboard() -> Element {
                             });
                         }
                     }
-                    div {
-                        class: "flex flex-row w-full h-full gap-4 mt-4 overflow-x-auto overflow-y-hidden rounded-md px-6",
-                        for state in states_signal() {
-                            Column {
-                                state: state.clone(),
-                                cards: {
-                                    let board = board_signal.read();
-                                    let cards_option = board.get(&state.id);
-                                    match cards_option {
-                                        Some(cards) => cards.clone(),
-                                        None => BTreeSet::new()
-                                    }
-                                },
-                            }
-                        }
-                        button {
-                            class: "rounded-md bg-slate-100 text-slate-400 hover:text-[#413a46] duration-200 flex items-center justify-center h-12 min-w-12",
-                            onclick: move |_| {
-                                info!("Add state");
-                            },
-                            Plus {}
-                        }
+                    ColumnContainer{
+                        states: states_signal(),
+                        board: board_signal()
                     }
                 }
-            }
+            )
         }
         Some(Err(err)) => {
             rsx! { div { "Error loading board {err}" } }
@@ -167,6 +145,34 @@ fn Dashboard() -> Element {
             rsx! { Loading {} }
         }
     }
+}
+
+#[component]
+fn ColumnContainer(states: Vec<StateModel>, board: HashMap<u32, BTreeSet<CardModel>>) -> Element {
+    rsx!(
+        div {
+            class: "flex flex-row w-full h-full gap-4 mt-4 overflow-x-auto overflow-y-hidden rounded-md px-6",
+            for state in states {
+                Column {
+                state: state.clone(),
+                    cards: {
+                        let cards_option = board.get(&state.id);
+                        match cards_option {
+                            Some(cards) => cards.clone(),
+                            None => BTreeSet::new()
+                        }
+                    },
+                }
+            }
+            button {
+                class: "rounded-md bg-slate-100 text-slate-400 hover:text-[#413a46] duration-200 flex items-center justify-center h-12 min-w-12",
+                onclick: move |_| {
+                    info!("Add state");
+                },
+                Plus {}
+            }
+        }
+    )
 }
 
 async fn fetch_data() -> Result<FetchResponse, Error> {

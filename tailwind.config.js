@@ -5,7 +5,8 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        minban_dark: '#5a5b70'
+        minban_dark: '#5a5b70',
+        minban_highlight: '#a294f9',
       }
     },
     fontFamily: {

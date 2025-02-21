@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
-use crate::mods::CardModel;
 use crate::components::Tag;
+use crate::mods::CardModel;
 use crate::utils::{IsNewCardState, IsSelectingState};
 
 #[component]
@@ -28,12 +28,12 @@ pub fn Card(card: CardModel) -> Element {
                     selected_card.set(card.clone());
                 }
             },
-            class: "min-h-24 w-full bg-white rounded-md p-4 shrink-0 flex flex-col gap-2 cursor-pointer relative",
+            class: "min-h-24 w-full bg-white transition-color rounded-md p-4 shrink-0 flex flex-col gap-2 cursor-pointer relative",
             h1 { "{card.title}" }
             div {
                 class: "flex flex-row flex-wrap gap-2 grow items-end",
                 for tag in card.tags.iter() {
-                    Tag { name: tag.name.clone(), color: tag.color.clone(), editable: false }
+                    Tag { name: tag.name.clone(), color: tag.color.clone() }
                 }
             }
         }

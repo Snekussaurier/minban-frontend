@@ -103,37 +103,38 @@ pub fn Column(state: StateModel, cards: BTreeSet<CardModel>) -> Element {
             },
             ondragover: move |e| e.prevent_default(),
             style: "background-color: #{state.color};",
-            class: "h-full w-full min-w-72 max-w-96 rounded-md p-4 flex flex-col",
+            class: "h-full w-full min-w-[340px] max-w-[340px] rounded-md p-4 flex flex-col",
             div {
-                class: "flex flex-row justify-between items-center",
-                p { "{state.name}" }
-                div {
-                    class: "flex flex-row gap-2",
-                    button {
-                        class: "text-slate-400 hover:text-[#413a46] duration-200",
-                        onclick: move |_| {
-                            // card details on with a new card in column this column
-                            selected_card.set(CardModel {
-                                id: "".to_string(),
-                                title: "".to_string(),
-                                description: "".to_string(),
-                                state_id: state.id,
-                                // Get the last card in the column and set the position to the next one
-                                position: cards.len() as u32 + 1,
-                                tags: vec![],
-                            });
-                            is_new_card.set(IsNewCardState(true));
-                            is_selecting.set(IsSelectingState(true));
-                        },
-                        Plus {}
-                    }
-                    button {
-                        class: "text-slate-400 hover:text-[#413a46] duration-200",
-                        onclick: move |_| {
-                            debug!("Edit column settings");
-                        },
-                        MoreVertical {}
-                    }
+                class: "flex flex-row justify-between items-center gap-2",
+                input{
+                    class: "w-full bg-transparent text-ellipsis flex-grow",
+                    value: "{state.name}",
+                    maxlength: 20
+                }
+                button {
+                    class: "text-slate-400 hover:text-[#413a46] duration-200",
+                    onclick: move |_| {
+                        // card details on with a new card in column this column
+                        selected_card.set(CardModel {
+                            id: "".to_string(),
+                            title: "".to_string(),
+                            description: "".to_string(),
+                            state_id: state.id,
+                            // Get the last card in the column and set the position to the next one
+                            position: cards.len() as u32 + 1,
+                            tags: vec![],
+                        });
+                        is_new_card.set(IsNewCardState(true));
+                        is_selecting.set(IsSelectingState(true));
+                    },
+                    Plus {}
+                }
+                button {
+                    class: "text-slate-400 hover:text-[#413a46] duration-200",
+                    onclick: move |_| {
+                        debug!("Edit column settings");
+                    },
+                    MoreVertical {}
                 }
 
             }

@@ -2,9 +2,12 @@ use crate::components::editable_tag::EditableTag;
 use crate::components::icons::{Plus, TrashCan};
 use crate::components::tag::Tag;
 use crate::utils::{IsNewCardState, IsSelectingState};
-use crate::CardModel;
 use crate::TagModel;
+use crate::{CardModel, StateModel};
 use dioxus::prelude::*;
+use dioxus::web::WebEventExt;
+use web_sys::wasm_bindgen::JsCast;
+use web_sys::HtmlTextAreaElement;
 
 #[component]
 pub fn CardDetails(
@@ -13,12 +16,11 @@ pub fn CardDetails(
     on_delete: EventHandler<CardModel>,
 ) -> Element {
     let mut card = use_context::<Signal<CardModel>>();
-
     let mut is_selecting = use_context::<Signal<IsSelectingState>>();
     let is_new_card = use_context::<Signal<IsNewCardState>>();
-
     let mut show_dropdown = use_signal(|| false);
     let display = if is_selecting().0 { "flex" } else { "none" };
+    let color_dropdown_tag = if show_dropdown() { "#000000" } else { "" };
 
     rsx! {
         div {
@@ -27,48 +29,51 @@ pub fn CardDetails(
             div {
                 class: "bg-white rounded-md w-4/5 max-w-lg h-4/5 max-h-[756px] shadow-xl flex flex-col gap-4",
                 div {
-                    class: "p-4 bg-slate-100 rounded-t-md",
+                    style: "background-color: #{get_column_color(card().state_id)}",
+                    class: "pt-3 w-full rounded-t-md",
                     div {
-                        class: "flex flex-row items-start gap-2",
-                        textarea {
-                            class: "text-2xl text-[#413a46] w-full overflow-y-hidden bg-transparent resize-none flex-grow",
-                            placeholder: "Title",
-                            maxlength: "60",
-                            value: "{card.read().title}",
-                            oninput: move |evt| card.write().title = evt.value()
-                        }
-                        if !is_new_card().0 {
-                            button {
-                                class: "h-fit text-slate-400 hover:text-red-400 duration-200 transition-colors",
-                                onclick: move |_| {
-                                    on_delete.call(card.read().clone());
-                                    is_selecting.set(IsSelectingState(false));
-                                },
-                                TrashCan{}
-                            }
-                        }
-                    }
-                    div {
-                        class: "flex flex-row gap-2",
-                        for tag in card.read().tags.iter() {
-                            EditableTag {
-                                id: tag.id,
-                                name: tag.name.clone(),
-                                color: tag.color.clone(),
-                                on_click: move |id| {
-                                    card.write().tags.retain(|x| x.id != id);
+                        class: "p-4 bg-slate-100 rounded-t-md",
+                        div {
+                            class: "flex flex-row items-start gap-2",
+                            AutoResizeTextarea { card: card }
+                            div {
+                                class: "flex flex-col justify-between",
+                                if !is_new_card().0 {
+                                    button {
+                                        class: "h-fit text-slate-400 hover:text-red-400 duration-200 transition-colors",
+                                        onclick: move |_| {
+                                            on_delete.call(card.read().clone());
+                                            is_selecting.set(IsSelectingState(false));
+                                        },
+                                        TrashCan {}
+                                    }
                                 }
                             }
+
                         }
-                                                        button {
-                            onclick: move |_| { show_dropdown.set(!show_dropdown()) },
-                            class: "rounded-full  px-3 py-1 flex justify-center items-center text-slate-400 hover:text-[#413a46] duration-200 relative bg-slate-200",
-                            p {
-                                class: "text-sm mr-1",
-                                "Add tag"
+                        div {
+                            class: "flex flex-row flex-wrap gap-2 mt-4",
+                            for tag in card.read().tags.iter() {
+                                EditableTag {
+                                    id: tag.id,
+                                    name: tag.name.clone(),
+                                    color: tag.color.clone(),
+                                    on_click: move |id| {
+                                        card.write().tags.retain(|x| x.id != id);
+                                    }
+                                }
                             }
-                            Plus {}
-                            TagSelectDropdown { card: card, is_selecting_dropdown: show_dropdown() }
+                            button {
+                                onclick: move |_| { show_dropdown.set(!show_dropdown()) },
+                                style: "color: {color_dropdown_tag}",
+                                class: "rounded-full px-3 py-1 flex justify-center items-center text-slate-400 hover:text-black duration-200 relative bg-slate-200",
+                                p {
+                                    class: "text-sm mr-1",
+                                    "Add tag"
+                                }
+                                Plus {}
+                                TagSelectDropdown { card: card, is_selecting_dropdown: show_dropdown() }
+                            }
                         }
                     }
                 }
@@ -87,7 +92,7 @@ pub fn CardDetails(
                     div {
                         class: "flex flex-row gap-4 justify-end",
                         button {
-                            class: "rounded-md p-2 bg-minban_dark text-white flex-grow duration-200",
+                            class: "rounded-md p-2 bg-minban_dark hover:bg-minban_highlight text-white flex-grow duration-200",
                             onclick: move |_| {
                                 if is_new_card().0 {
                                     on_create.call(card.read().clone());
@@ -106,7 +111,7 @@ pub fn CardDetails(
                             }
                         }
                         button {
-                            class: "rounded-md p-2 bg-slate-100 flex-grow",
+                            class: "rounded-md p-2 bg-slate-100 text-slate-400 hover:text-minban_dark duration-200 flex-grow",
                             onclick: move |_| {
                                 is_selecting.set(IsSelectingState(false));
                                 show_dropdown.set(false);
@@ -121,12 +126,43 @@ pub fn CardDetails(
 }
 
 #[component]
-fn AutoResizeTextarea(content: String) -> Element {
+fn AutoResizeTextarea(mut card: Signal<CardModel>) -> Element {
+    let mut title_area: Signal<Option<std::rc::Rc<MountedData>>> = use_signal(|| None);
+
     rsx!(textarea {
-        class: "text-2xl text-[#413a46] w-full overflow-y-hidden bg-transparent resize-none",
+        class:
+            "text-2xl text-[#413a46] min-h-[33px] w-full overflow-hidden bg-transparent resize-none flex-grow",
         placeholder: "Title",
-        maxlength: "60",
-        value: "{content}"
+        value: "{card().title}",
+        maxlength: 60,
+        onmounted: move |element| {
+            title_area.set(Some(element.data()));
+            if let Some(element) = title_area() {
+                if let Some(web_sys_element) = element.try_as_web_event() {
+                    let textarea = web_sys_element.dyn_into::<HtmlTextAreaElement>().unwrap();
+                    textarea.style().set_property("height", "32px").ok();
+                    let scroll_height = textarea.scroll_height();
+                    textarea
+                        .style()
+                        .set_property("height", &format!("{}px", scroll_height))
+                        .ok();
+                }
+            }
+        },
+        oninput: move |evt| {
+            card.write().title = evt.value();
+            if let Some(element) = title_area() {
+                if let Some(web_sys_element) = element.try_as_web_event() {
+                    let textarea = web_sys_element.dyn_into::<HtmlTextAreaElement>().unwrap();
+                    textarea.style().set_property("height", "32px").ok();
+                    let scroll_height = textarea.scroll_height();
+                    textarea
+                        .style()
+                        .set_property("height", &format!("{}px", scroll_height))
+                        .ok();
+                }
+            }
+        }
     })
 }
 
@@ -140,11 +176,9 @@ fn TagSelectDropdown(mut card: Signal<CardModel>, is_selecting_dropdown: bool) -
     };
 
     rsx!(
-        // Add a dropdownlist for selecting adding a tag to the card
         div {
             class: "absolute top-10 right-0 w-48 bg-white rounded-md shadow-md",
             style: "display: {display_value_dropdown}",
-            // Loop through tags in "tags" signal and display them as buttons
             for tag in tags() {
                 if !card.read().tags.iter().any(|x| x.id == tag.id) {
                     button {
@@ -153,17 +187,23 @@ fn TagSelectDropdown(mut card: Signal<CardModel>, is_selecting_dropdown: bool) -
                         Tag {
                             name: tag.name.clone(),
                             color: tag.color.clone(),
-                            editable: false
                         }
                     }
                 }
             }
-            hr {}
-            button {
-                class: "p-3 text-sm text-left hover:bg-slate-100 w-full flex flex-row gap-1",
-                "Add new tag",
-                Plus {}
-            }
         }
     )
+}
+
+fn get_column_color(card_state_id: u32) -> String {
+    let states_signal = use_context::<Signal<Vec<StateModel>>>();
+    let states = states_signal();
+
+    for state in states {
+        if state.id == card_state_id {
+            return state.color;
+        };
+    }
+
+    "ffffff".to_string()
 }
